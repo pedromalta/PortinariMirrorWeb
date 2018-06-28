@@ -19,9 +19,12 @@ ENV FRAMEWORK=laravel \
     COLORTERM=truecolor \
     COMPOSER_PROCESS_TIMEOUT=1200
 
-# Add the ENTRYPOINT script
-ADD start.sh /scripts/start.sh
-ADD bashrc /home/ambientum/.bashrc
+# Copy nginx and entry script
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY ssl.conf /etc/nginx/ssl.conf
+COPY sites /etc/nginx/sites
+COPY start.sh  /home/ambientum/start.sh
+COPY bashrc /home/ambientum/.bashrc
 
 # Install PHP From DotDeb, Common Extensions, Composer and then cleanup
 RUN echo "---> Enabling PHP-Alpine" && \
@@ -82,7 +85,6 @@ RUN echo "---> Preparing and Installing PHP" && \
     php7-zlib \
     php7-pcntl \
     php7-phpdbg
-    #sudo ln -s /usr/bin/php7 /usr/bin/php && \
 RUN echo "---> Installing Composer" && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN echo "---> Cleaning up" && \
@@ -105,34 +107,42 @@ RUN echo "---> Configuring PHP" && \
     sed -i "/;daemonize = .*/c\daemonize = yes" /etc/php7/php-fpm.conf && \
     sed -i "/error_log = .*/c\error_log = /proc/self/fd/2" /etc/php7/php-fpm.conf && \
     sed -i "/post_max_size = .*/c\post_max_size = 1000M" /etc/php7/php.ini && \
-    sed -i "/upload_max_filesize = .*/c\upload_max_filesize = 1000M" /etc/php7/php.ini && \
-    #sed -i "/zend_extension=xdebug/c\;zend_extension=xdebug" /etc/php7/conf.d/00_xdebug.ini && \
-    #echo "---> Adding Support for NewRelic" && \
-    #mkdir /tmp/newrelic && \
-    #cd /tmp/newrelic && \
-    #wget -r -l1 -nd -A"linux-musl.tar.gz" https://download.newrelic.com/php_agent/release/ && \
-    #gzip -dc newrelic*.tar.gz | tar xf - && \
-    #cd newrelic-php5* && \
-    #rm -f /usr/lib/php7/modules/newrelic.so && \
-    #cp ./agent/x64/newrelic-20170718.so /usr/lib/php7/modules/newrelic.so && \
-    #cp ./daemon/newrelic-daemon.x64 /usr/bin/newrelic-daemon && \
-    #cp ./scripts/newrelic.ini.template /scripts/newrelic.ini && \
-    #mkdir /var/log/newrelic && \
-    #chown -R ambientum:ambientum /var/log/newrelic && \
-    chown -R ambientum:ambientum /home/ambientum && \
-    chmod +x /scripts/start.sh && \
-    rm -rf /tmp/*
+    sed -i "/upload_max_filesize = .*/c\upload_max_filesize = 1000M" /etc/php7/php.ini
+
+
+# Install nginx from dotdeb (already enabled on base image)
+RUN echo "--> Installing Nginx" && \
+    apk add --update nginx openssl && \
+    rm -rf /tmp/* /var/tmp/* /usr/share/doc/* && \
+    echo "--> Fixing permissions" && \
+    mkdir /var/tmp/nginx && \
+    mkdir /var/run/nginx && \
+    mkdir /home/ambientum/ssl && \
+    chown -R ambientum:ambientum /var/tmp/nginx && \
+    chown -R ambientum:ambientum /var/run/nginx && \
+    chown -R ambientum:ambientum /var/log/nginx && \
+    chown -R ambientum:ambientum /var/lib/nginx && \
+    chmod +x /home/ambientum/start.sh && \
+    chown -R ambientum:ambientum /home/ambientum
 
 # Define the running user
 USER ambientum
 
-# Application directory
-WORKDIR "/var/www/app"
+# Pre generate some SSL
+# YOU SHOULD REPLACE WITH YOUR OWN CERT.
+RUN openssl req -x509 -nodes -days 3650 \
+   -newkey rsa:2048 -keyout /home/ambientum/ssl/nginx.key \
+   -out /home/ambientum/ssl/nginx.crt -subj "/C=AM/ST=Ambientum/L=Ambientum/O=Ambientum/CN=*.dev" && \
+   openssl dhparam -out /home/ambientum/ssl/dhparam.pem 2048
 
 # Environment variables
 ENV PATH=/home/ambientum/.composer/vendor/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-ENTRYPOINT ["/sbin/tini", "--", "/scripts/start.sh"]
+# Application directory
+WORKDIR "/var/www/app"
 
-# As non daemon and single base image, it may be used as cli container
-CMD ["/bin/bash"]
+# Expose webserver port
+EXPOSE 8080
+
+# Starts a single shell script that puts php-fpm as a daemon and nginx on foreground
+CMD ["/home/ambientum/start.sh"]

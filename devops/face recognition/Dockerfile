@@ -7,14 +7,14 @@ RUN echo "---> Updating Ubuntu" && \
     apt-get update && apt-get -y upgrade
 
 RUN echo "---> Installing Build Requirements" && \
-    apt-get install -y build-essential cmake cmake-curses-gui wget unzip git
+    apt-get install -y build-essential cmake cmake-curses-gui wget unzip git qt5-default libqt5svg5-dev 
 
 RUN echo "---> Cleaning up apt lists" && \
     rm -rf /var/lib/apt/lists/*
 
 RUN echo "---> Get OpenCV" && \
-    git clone https://github.com/opencv/opencv.git && \
-    git clone https://github.com/opencv/opencv_contrib.git
+    git clone -b 2.4.13.6 --single-branch https://github.com/opencv/opencv.git && \
+    git clone -b 3.4.1 --single-branch https://github.com/opencv/opencv_contrib.git
 
 RUN echo "---> Build OpenCV" && \
     cd opencv  && \
@@ -35,6 +35,7 @@ RUN echo "---> Get OpenBR" && \
     git submodule update
 
 RUN echo "---> Build OpenBR" && \
+    cd openbr && \
     mkdir build && \
     cd build && \
     cmake -DCMAKE_BUILD_TYPE=Release .. && \

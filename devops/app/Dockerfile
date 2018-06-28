@@ -12,13 +12,9 @@ FROM i386/alpine:3.7
 # Repository/Image Maintainer
 LABEL maintainer="Diego Hernandes <diego@hernandev.com>"
 
-# Variables for enabling NewRelic
 ENV FRAMEWORK=laravel \
     OPCACHE_MODE="normal" \
     XDEBUG_ENABLED=false \
-    NR_ENABLED=false \
-    NR_APP_NAME="" \
-    NR_LICENSE_KEY="" \
     TERM=xterm-256color \
     COLORTERM=truecolor \
     COMPOSER_PROCESS_TIMEOUT=1200
@@ -29,9 +25,6 @@ ADD bashrc /home/ambientum/.bashrc
 
 # Install PHP From DotDeb, Common Extensions, Composer and then cleanup
 RUN echo "---> Enabling PHP-Alpine" && \
-    #apk add --update wget && \
-    #wget -O /etc/apk/keys/php-alpine.rsa.pub http://php.codecasts.rocks/php-alpine.rsa.pub && \
-    #echo "@php http://php.codecasts.rocks/v3.7/php-7.2" >> /etc/apk/repositories && \
     apk add --update \
     curl \
     bash \
@@ -45,6 +38,7 @@ RUN echo "---> Enabling PHP-Alpine" && \
     unzip \
     wget \
     make \
+    tini \
     sudo
 
 RUN echo "---> Preparing and Installing PHP" && \
@@ -97,8 +91,6 @@ RUN echo "---> Cleaning up" && \
     adduser -D -u 1000 ambientum && \
     mkdir -p /var/www/app && \
     chown -R ambientum:ambientum /var/www && \
-    wget -O /tini https://github.com/krallin/tini/releases/download/v0.16.1/tini-static && \
-    chmod +x /tini
 RUN echo "---> Configuring PHP" && \
     echo "ambientum  ALL = ( ALL ) NOPASSWD: ALL" >> /etc/sudoers && \
     sed -i "/user = .*/c\user = ambientum" /etc/php7/php-fpm.d/www.conf && \
@@ -140,8 +132,7 @@ WORKDIR "/var/www/app"
 # Environment variables
 ENV PATH=/home/ambientum/.composer/vendor/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-# Define the entry point that tries to enable newrelic
-ENTRYPOINT ["/tini", "--", "/scripts/start.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/scripts/start.sh"]
 
 # As non daemon and single base image, it may be used as cli container
 CMD ["/bin/bash"]

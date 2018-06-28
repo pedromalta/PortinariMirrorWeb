@@ -11,7 +11,7 @@ services:
   # MySQL (5.7)
   mysql:
     #image: ambientum/mysql:5.7
-    image: pyriand3r/i386-mysql
+    image: pyriand3r/i386-mysql:5.7
     container_name: portinari-mysql
     volumes:
       - portinari-mysql-data:/var/lib/mysql
@@ -26,7 +26,7 @@ services:
   # PHP (with Caddy)
   app:
     #image: ambientum/php:7.1-caddy
-    image: pedromalta/i386:7.2
+    image: pedromalta/i386php:7.2
     container_name: portinari-app
     volumes:
       - .:/var/www/app

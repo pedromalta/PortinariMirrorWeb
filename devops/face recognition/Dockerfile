@@ -12,7 +12,7 @@ RUN echo "---> Installing Build Requirements" && \
 RUN echo "---> Cleaning up apt lists" && \
     rm -rf /var/lib/apt/lists/*
 
-RUN echo "---> Get OpenCV 2.4.11" && \
+RUN echo "---> Get OpenCV" && \
     git clone https://github.com/opencv/opencv.git && \
     git clone https://github.com/opencv/opencv_contrib.git
 
@@ -26,6 +26,20 @@ RUN echo "---> Build OpenCV" && \
     make install && \
     cd ../.. && \
     rm -rf opencv*
+
+RUN echo "---> Get OpenBR" && \
+    git clone https://github.com/biometrics/openbr.git && \
+    cd openbr && \
+    git checkout v1.1.0 && \
+    git submodule init && \
+    git submodule update
+
+RUN echo "---> Build OpenBR" && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
+    make -j4 && \
+    sudo make install
 
 # Add files.
 #ADD root/.bashrc /root/.bashrc

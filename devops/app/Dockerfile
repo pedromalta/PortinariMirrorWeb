@@ -90,7 +90,7 @@ RUN echo "---> Cleaning up" && \
     echo "---> Adding the ambientum user" && \
     adduser -D -u 1000 ambientum && \
     mkdir -p /var/www/app && \
-    chown -R ambientum:ambientum /var/www && \
+    chown -R ambientum:ambientum /var/www
 RUN echo "---> Configuring PHP" && \
     echo "ambientum  ALL = ( ALL ) NOPASSWD: ALL" >> /etc/sudoers && \
     sed -i "/user = .*/c\user = ambientum" /etc/php7/php-fpm.d/www.conf && \

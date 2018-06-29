@@ -39,7 +39,7 @@ RUN echo "---> Build OpenBR" && \
     mkdir build && \
     cd build && \
     cmake -DCMAKE_BUILD_TYPE=Release .. && \
-    make -j4 && \
+    make VERBOSE=1 && \
     sudo make install
 
 # Add files.

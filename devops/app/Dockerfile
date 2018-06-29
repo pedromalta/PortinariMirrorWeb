@@ -10,7 +10,7 @@
 FROM i386/alpine:3.7
 
 # Repository/Image Maintainer
-LABEL maintainer="Diego Hernandes <diego@hernandev.com>"
+LABEL maintainer="Pedro Malta <pedromalta@gmail.com>"
 
 ENV FRAMEWORK=laravel \
     OPCACHE_MODE="normal" \
@@ -84,7 +84,11 @@ RUN echo "---> Preparing and Installing PHP" && \
     php7-zip \
     php7-zlib \
     php7-pcntl \
-    php7-phpdbg
+    php7-phpdbg \
+    php7-fileinfo \
+    php7-xmlwriter \
+    php7-tokenizer
+
 RUN echo "---> Installing Composer" && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN echo "---> Cleaning up" && \

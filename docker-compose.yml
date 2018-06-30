@@ -6,6 +6,9 @@ volumes:
   # MySQL Data
   portinari-mysql-data:
     driver: local
+  # Face Recognition Data
+  portinari-face-recognition-data:
+    driver: local
 
 services:
   # MySQL (5.7)
@@ -23,7 +26,7 @@ services:
       - MYSQL_USER=portinari
       - MYSQL_PASSWORD=portinari
 
-  # PHP (with Caddy)
+  # PHP
   app:
     #image: ambientum/php:7.1-caddy
     image: pedromalta/i386php:7.2
@@ -34,3 +37,11 @@ services:
       - "80:8080"
     links:
       - mysql
+      - face-recognition
+
+  #Face Recognition
+  face-recognition:
+    image: pedromalta/openbr
+    container_name: portinari-face-recognition
+    volumes:
+      - portinari-face-recognition-data:/root/face-recognition

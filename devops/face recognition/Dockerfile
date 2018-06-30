@@ -7,7 +7,7 @@ RUN echo "---> Updating Ubuntu" && \
     apt-get update && apt-get -y upgrade
 
 RUN echo "---> Installing Build Requirements" && \
-    apt-get install -y build-essential cmake cmake-curses-gui wget unzip git qt5-default libqt5svg5-dev 
+    apt-get install -y build-essential cmake cmake-curses-gui wget sudo unzip git qt5-default libqt5svg5-dev 
 
 RUN echo "---> Cleaning up apt lists" && \
     rm -rf /var/lib/apt/lists/*
@@ -39,7 +39,7 @@ RUN echo "---> Build OpenBR" && \
     mkdir build && \
     cd build && \
     cmake -DCMAKE_BUILD_TYPE=Release .. && \
-    make VERBOSE=1 && \
+    make -j4 && \
     sudo make install
 
 # Add files.

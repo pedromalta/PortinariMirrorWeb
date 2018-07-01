@@ -18,5 +18,8 @@ docker exec -it portinari-app php artisan migrate
 echo Make seeds
 docker exec -it portinari-app php artisan db:seed
 
+echo Make seeds
+docker exec -it portinari-app php artisan voyager:install
+
 echo Information of new containers
 docker ps -a 

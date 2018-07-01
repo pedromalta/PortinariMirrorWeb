@@ -2,6 +2,8 @@
 /public/hot
 /public/storage
 /public/vendor
+/face-recognition/faces/known/*.jpg
+/face-recognition/faces/*.jpg
 /storage/*.key
 /vendor
 /.idea

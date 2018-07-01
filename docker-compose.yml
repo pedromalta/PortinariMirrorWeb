@@ -6,9 +6,6 @@ volumes:
   # MySQL Data
   portinari-mysql-data:
     driver: local
-  # Face Recognition Data
-  portinari-face-recognition-data:
-    driver: local
 
 services:
   # MySQL (5.7)
@@ -41,7 +38,10 @@ services:
 
   #Face Recognition
   face-recognition:
-    image: pedromalta/openbr
+    image: pedromalta/i386face_recognition
     container_name: portinari-face-recognition
     volumes:
-      - portinari-face-recognition-data:/root/face-recognition
+      - ./face-recognition:/root/face-recognition
+    ports:
+      - "81:8888"
+    command: ["python", "/root/face-recognition/service.py"]

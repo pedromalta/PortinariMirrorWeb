@@ -1,57 +1,42 @@
-FROM i386/ubuntu:16.04
+FROM i386/python:3.6-alpine3.7
 
 # Repository/Image Maintainer
 LABEL maintainer="Pedro Malta <pedromalta@gmail.com>"
 
-RUN echo "---> Updating Ubuntu" && \
-    apt-get update && apt-get -y upgrade
+RUN apk update \
+    && apk add --no-cache git \
+       cmake \
+       g++ \
+       make \
+       jpeg jpeg-dev \
+       libpng libpng-dev \
+       giflib giflib-dev \
+       lapack \
+       bash \
+       lapack-dev \
+       ca-certificates \
+       wget \
+    && rm -rf /var/cache/apk/*
 
-RUN echo "---> Installing Build Requirements" && \
-    apt-get install -y build-essential cmake cmake-curses-gui wget sudo unzip git qt5-default libqt5svg5-dev 
+RUN pip install numpy
 
-RUN echo "---> Cleaning up apt lists" && \
-    rm -rf /var/lib/apt/lists/*
+RUN cd ~ && \
+    mkdir -p dlib && \
+    git clone -b 'v19.9' --single-branch https://github.com/davisking/dlib.git dlib/ && \
+    cd  dlib/ && \
+    python3 setup.py install --yes
 
-RUN echo "---> Get OpenCV" && \
-    git clone -b 2.4.13.6 --single-branch https://github.com/opencv/opencv.git && \
-    git clone -b 3.4.1 --single-branch https://github.com/opencv/opencv_contrib.git
+RUN pip install face_recognition
+RUN pip install tornado
 
-RUN echo "---> Build OpenCV" && \
-    cd opencv  && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_BUILD_TYPE=Release .. && \
-    # -D ENABLE_PRECOMPILED_HEADERS=OFF .. && \
-    make -j4 && \
-    make install && \
-    cd ../.. && \
-    rm -rf opencv*
-
-RUN echo "---> Get OpenBR" && \
-    git clone https://github.com/biometrics/openbr.git && \
-    cd openbr && \
-    git checkout v1.1.0 && \
-    git submodule init && \
-    git submodule update
-
-RUN echo "---> Build OpenBR" && \
-    cd openbr && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_BUILD_TYPE=Release .. && \
-    make -j4 && \
-    sudo make install
-
-# Add files.
-#ADD root/.bashrc /root/.bashrc
-#ADD root/.gitconfig /root/.gitconfig
-#ADD root/.scripts /root/.scripts
-
+RUN mkdir /root/face-recognition
+COPY bashrc /root/.bashrc
 # Set environment variables.
 ENV HOME /root
+USER root
 
 # Define working directory.
-WORKDIR /root
+WORKDIR /root/face-recognition
 
 # As non daemon and single base image, it may be used as cli container
-CMD ["/bin/bash"]
+CMD ["bash"]

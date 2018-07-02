@@ -12,10 +12,16 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('uploadtest');
 });
 
 
 Route::group(['prefix' => 'admin'], function () {
     Voyager::routes();
 });
+
+Route::post('dashboard/', 'DashboardController@dashboard');
+Route::get('dashboard/', 'DashboardController@dashboard');
+Route::get('dashboard/{userId}', 'DashboardController@dashboard');
+Route::post('face-recognition/', 'DashboardController@faceRecognition');
+

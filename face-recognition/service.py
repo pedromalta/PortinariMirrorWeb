@@ -6,6 +6,7 @@ import re
 import face_recognition.api as face_recognition
 import PIL.Image
 import numpy as np
+import json
 from tornado.log import enable_pretty_logging
 enable_pretty_logging()
 
@@ -37,9 +38,9 @@ class CompareFaces():
 
         def print_result(self, name, distance, show_distance=False):
                 if show_distance:
-                        return "{},{}".format(name, distance)
+                        return {"id":int(name), "distance": distance}
                 else:
-                        return "{}".format(name)
+                        return {"id":int(name)}
 
 
         def test_image(self, image_to_check, tolerance=0.6, show_distance=False):
@@ -60,13 +61,13 @@ class CompareFaces():
                         result = list(distances <= tolerance)
 
                         if True in result:
-                                return [self.print_result(name, distance, show_distance) for is_match, name, distance in zip(result, known_names, distances) if is_match]
+                                return json.dumps([self.print_result(name, distance, show_distance) for is_match, name, distance in zip(result, known_names, distances) if is_match])
                         else:
-                                return self.print_result("unknown_person", None, show_distance)
+                                return json.dumps([])
 
                 if not unknown_encodings:
                         # print out fact that no faces were found in image
-                        return self.print_result("no_persons_found", None, show_distance)
+                        return json.dumps([])
 
 
         def image_files_in_folder(self, folder):
@@ -91,7 +92,7 @@ class Upload(tornado.web.RequestHandler):
         cf = CompareFaces()
         results = cf.test_image(fh.name, 0.6, True)
         os.remove(fh.name)
-        self.finish(repr(results))
+        self.finish(results)
 
 
 application = tornado.web.Application([

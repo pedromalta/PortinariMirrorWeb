@@ -26,4 +26,32 @@ class User extends \TCG\Voyager\Models\User
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+
+    public static function boot()
+    {
+        parent::boot();
+
+        self::updated(function($model){
+            if ($model->avatar != 'users/default.png') {
+                $path = "storage/" . $model->avatar;
+                $pathinfo = pathinfo($path);
+                $extension = $pathinfo['extension'];
+                $known_face = '/known-faces/' . $model->id . "." . $extension;
+                copy($path, $known_face);
+            }
+        });
+
+
+        self::deleted(function($model){
+            if ($model->avatar != 'users/default.png') {
+                $path = "storage/" . $model->avatar;
+                $pathinfo = pathinfo($path);
+                $extension = $pathinfo['extension'];
+                $known_face = '/known-faces/' . $model->id . "." . $extension;
+                unlink($known_face);
+                unlink($path);
+            }
+        });
+    }
 }

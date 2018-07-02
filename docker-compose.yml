@@ -30,11 +30,14 @@ services:
     container_name: portinari-app
     volumes:
       - .:/var/www/app
+      - ./face-recognition/faces/known:/known-faces
     ports:
       - "80:8080"
     links:
       - mysql
       - face-recognition
+    environment:
+      - KNOW_FACES_PATH=/known-faces
 
   #Face Recognition
   face-recognition:
@@ -45,3 +48,19 @@ services:
     ports:
       - "81:8888"
     command: ["python", "/root/face-recognition/service.py"]
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: portinari-mysqladmin
+    links:
+      - mysql
+    ports:
+      - 8181:80
+    environment:
+      - PMA_HOST=mysql
+      - PMA_USER=portinari
+      - PMA_PASSWORD=portinari
+      - MYSQL_ROOT_PASSWORD=portinari
+      - MYSQL_DATABASE=portinari
+      - MYSQL_USERNAME=portinari
+      - MYSQL_PASSWORD=portinari
